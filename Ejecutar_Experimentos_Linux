@@ -1,0 +1,124 @@
+#!/bin/bash
+fRes="../Resultados/Selection.Desired"
+fDatos="../Datos"
+#fRes="../res/selection.desiredsummultfunc1"
+#fDatos="../data"
+
+clear
+echo "Instalando EvoDAG...."
+cd /home/claudia/Documentos/DOCTORADO/EvoDAG
+#cd /shared/cnsanchez/EvoDAG
+python setup.py build_ext --inplace
+python setup.py install
+nosetests EvoDAG
+
+test="_test_data_"
+train="_train_"
+
+clear
+echo "banana...."
+archivo="banana"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+#clear
+#echo "Breast - Cancer ...."
+archivo="breast-cancer"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="diabetis"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="flare-solar"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="german"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="heart"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="image"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="ringnorm"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="splice"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="thyroid"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="titanic"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="twonorm"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
+
+archivo="waveform"
+for ((var=1;var<=0;var++))
+do   
+    EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-train -P $fRes/$archivo$test$var.params -m $fRes/$archivo$test$var.model -u 2 $fDatos/$archivo$train$var.csv
+    EvoDAG-predict -m $fRes/$archivo$test$var.model -o $fRes/$archivo$test$var.predict -u 2 $fDatos/$archivo$test$var.csv
+done
