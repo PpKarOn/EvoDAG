@@ -11,17 +11,13 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-folderRes = '../res/TB/'
+folderRes = '../res/TDF/'
 folderData = '../data/'
 datasets = ['banana','titanic','thyroid','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
 datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
 datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
 os.chdir('/shared/cnsanchez/EvoDAG')
-#os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
-os.system('python setup.py build_ext --inplace')
-os.system('python setup.py install')
-os.system('nosetests EvoDAG')
 
 columns=['dataset','error','fitness','size']
 index=numpy.arange(len(datasets))
