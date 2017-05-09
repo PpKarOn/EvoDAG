@@ -16,7 +16,7 @@ train="_train_"
 archivo="banana"
 clear
 echo "banana.........................................................."
-for ((var=1;var<=100;var++))
+for ((var=1;var<=1;var++))
 do  
     echo EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
     EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
@@ -29,7 +29,7 @@ done
 archivo="breast-cancer"
 clear
 echo "breast-cancer..............................................."
-for ((var=1;var<=100;var++))
+for ((var=1;var<=1;var++))
 do  
     echo EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
     EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
@@ -42,7 +42,7 @@ done
 archivo="diabetis"
 clear
 echo "diabetis..............................................."
-for ((var=1;var<=100;var++))
+for ((var=1;var<=1;var++))
 do  
     echo EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
     EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
@@ -55,7 +55,7 @@ done
 archivo="flare-solar"
 clear
 echo "flare-solar..............................................."
-for ((var=1;var<=100;var++))
+for ((var=1;var<=1;var++))
 do  
     echo EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv
     EvoDAG-params -C -P $fRes/$archivo$test$var.params -u 32 $fDatos/$archivo$train$var.csv

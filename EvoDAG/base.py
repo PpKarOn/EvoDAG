@@ -419,8 +419,9 @@ class EvoDAG(object):
             k = self.tournament_closer(func,2)
             args.append(k)
             return args
-        
+        '''
         #Searching n arguments based on orthogonality
+        '''
         if func.symbol == '+':
             k = self.population.tournament()
             args.append(k)
@@ -428,6 +429,7 @@ class EvoDAG(object):
                 m = self.tournament_orthogonality(2,args)
                 args.append(m)
             return args
+        '''
         '''
         #Searching n arguments based on desired unique vectors
         if func.symbol == '+' or func.symbol == '*':
@@ -446,7 +448,7 @@ class EvoDAG(object):
                 m = self.tournament_desired(desired_unique,2,args)
                 args.append(m)
             return args
-        
+        '''
         if func.unique_args:
             return self.get_unique_args(func)
         for j in range(func.nargs):

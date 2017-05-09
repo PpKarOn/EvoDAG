@@ -12,12 +12,13 @@ def BER(y, yh):
     return (b / float(u.shape[0])) * 100.
 datasets = ['banana','titanic','thyroid','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
 datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
-#datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
+print('Evaluation')
 os.chdir('/shared/cnsanchez/EvoDAG')
 #os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
-folderRes = '../res/TDesired/'
-folderRes = '../res/EvoDAG/'
+folderRes = '../res/TB/'
+#folderRes = '../res/EvoDAG/'
 folderData = '../data/'
 
 columns=['dataset','error','fitness','size']
@@ -47,5 +48,5 @@ for i in range(len(datasets)):
     df['fitness'][i] = fitness
     df['size'][i] = size
     print(df)
-    df.to_csv(folderRes+'ares.csv',sep=',')
+    df.to_csv(folderRes+'ares_1.csv',sep=',')
 print(df)
