@@ -13,11 +13,13 @@ def BER(y, yh):
 
 folderRes = '../res/TDF/'
 folderData = '../data/'
-datasets = ['banana','titanic','thyroid','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
+ncores = 2
+datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
 datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
 datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-os.chdir('/shared/cnsanchez/EvoDAG')
+#os.chdir('/shared/cnsanchez/EvoDAG')
+os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
 
 columns=['dataset','error','fitness','size']
 index=numpy.arange(len(datasets))
@@ -35,9 +37,9 @@ for i in range(len(datasets)):
         fileParams = folderRes+archivo+'_test_data_'+str(j)+ '.params'
         fileModel = folderRes+archivo+'_test_data_'+str(j)+'.model'
         filePredict = folderRes+archivo+'_test_data_'+str(j)+ '.predict'
-        os.system('EvoDAG-params -C -P ' +fileParams+' -u 32 '+fileDataTrain)
-        os.system('EvoDAG-train -P '+fileParams+' -m '+fileModel+' -u 32 '+fileDataTrain)
-        os.system('EvoDAG-predict -m '+fileModel+' -o '+filePredict+' -u 32 '+fileDataTestData)
+        os.system('EvoDAG-params -C -P ' +fileParams+' -u '+str(ncores)+' '+fileDataTrain)
+        os.system('EvoDAG-train -P '+fileParams+' -m '+fileModel+' -u '+str(ncores)+' '+fileDataTrain)
+        os.system('EvoDAG-predict -m '+fileModel+' -o '+filePredict+' -u '+str(ncores)+' '+fileDataTestData)
         p = subprocess.Popen(['EvoDAG-utils --size ' +fileModel],stdout=subprocess.PIPE,shell=True)
         size += float(p.stdout.read().decode("utf-8")[6:-1])
         p = subprocess.Popen(['EvoDAG-utils --fitness ' +fileModel],stdout=subprocess.PIPE,shell=True)
