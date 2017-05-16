@@ -343,8 +343,15 @@ class EvoDAG(object):
             size = self.population.popsize
         if size==0:
             size = 1
-        s = np.random.permutation(self.population.popsize)
-        return s[:size],size
+        res = []
+        done = {}
+        for _ in range(size): 
+            k = numpy.random.randint(self.population.popsize)
+            while k in done:
+                k = numpy.random.randint(self.population.popsize)
+            done[k] = 1
+            res.append(k)
+        return res,size
 
     def tournament_desired(self,desired_unique,size,args):
         sample,size = self.get_sample_population(size)
@@ -414,14 +421,14 @@ class EvoDAG(object):
 
     def get_args(self, func):
         args = []
-        ''''''
+        '''
         if func.nargs == 1:
             k = self.tournament_closer(func,2)
             args.append(k)
             return args
-        ''''''
-        #Searching n arguments based on orthogonality
         '''
+        #Searching n arguments based on orthogonality
+        ''''''
         if func.symbol == '+':
             k = self.population.tournament()
             args.append(k)
@@ -429,10 +436,10 @@ class EvoDAG(object):
                 m = self.tournament_orthogonality(2,args)
                 args.append(m)
             return args
-        '''
+        ''''''
         ''''''
         #Searching n arguments based on desired unique vectors
-        if func.symbol == '+' or func.symbol == '*':
+        if func.symbol == '*':
             k = self.population.tournament()
             args.append(k)
             desired_unique = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
