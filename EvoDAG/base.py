@@ -346,9 +346,9 @@ class EvoDAG(object):
         res = []
         done = {}
         for _ in range(size): 
-            k = numpy.random.randint(self.population.popsize)
+            k = np.random.randint(self.population.popsize)
             while k in done:
-                k = numpy.random.randint(self.population.popsize)
+                k = np.random.randint(self.population.popsize)
             done[k] = 1
             res.append(k)
         return res,size

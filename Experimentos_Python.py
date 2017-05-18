@@ -15,22 +15,22 @@ folderRes = '../res/TDO/'
 folderData = '../data/'
 ncores = 32
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
-#datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
-datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
+#datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-#os.chdir('/shared/cnsanchez/EvoDAG')
-os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
+os.chdir('/shared/cnsanchez/EvoDAG')
+#os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
 
 columns=['dataset','error','fitness','size']
 index=numpy.arange(len(datasets))
 df = pandas.DataFrame(columns=columns,index=index)
 for i in range(len(datasets)):
     archivo = datasets[i]
-    os.system('echo '+archivo)
     error = 0.0
     fitness = 0.0
     size = 0.0
     for j in range(1,datasets_size[i]+1):
+        print(archivo,j)
         fileDataTrain = folderData+archivo+'_train_'+str(j)+'.csv'
         fileDataTestData = folderData+archivo+'_test_data_'+str(j)+'.csv'
         fileDataTestLabels = folderData+archivo+'_test_labels_'+str(j)+'.csv'
@@ -58,3 +58,4 @@ for i in range(len(datasets)):
     print(df)
     df.to_csv(folderRes+'ares'+str(datasets_size[0])+'.csv',sep=',')
 print(df)
+
