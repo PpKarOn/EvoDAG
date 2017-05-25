@@ -13,9 +13,90 @@
 # limitations under the License.
 import logging
 import numpy as np
-from .node import Function, NaiveBayes, NaiveBayesMN
+from .node import Function, NaiveBayes, NaiveBayesMN, MultipleVariables
 from .model import Model
+from .cython_utils import SelectNumbers
 import gc
+
+
+class Inputs(object):
+    def __init__(self, base, vars, functions=None):
+        self._base = base
+        self._vars = vars
+        self._unique_individuals = set()
+        if functions is None:
+            self._funcs = [NaiveBayes, NaiveBayesMN, MultipleVariables]
+        else:
+            self._funcs = functions
+        assert len(self._funcs) <= 3
+        c = base._classifier
+        tag = 'classification' if c else 'regression'
+        self._funcs = [x for x in self._funcs if getattr(x, tag)]
+        self.functions()
+
+    def functions(self):
+        base = self._base
+        density = sum([x.hy.density for x in base.X]) / base.nvar
+        func = [x for x in self._funcs if x.nargs > 0]
+        if not len(func):
+            self._func = None
+            self._nfunc = 0
+            return
+        if density < self._base._min_density:
+            func = [x for x in func if x.density_safe]
+        self._nfunc = len(func)
+        self._func = func
+
+    def function(self):
+        if self._nfunc == 1:
+            return self._func
+        elif self._nfunc == 2:
+            if np.random.random() < 0.5:
+                return self._func
+            return [self._func[1], self._func[0]]
+        else:
+            rnd = np.random.random()
+            if rnd < 0.3:
+                return self._func
+            elif rnd < 0.6:
+                return [self._func[1], self._func[0], self._func[2]]
+            else:
+                return [self._func[2], self._func[0], self._func[1]]
+
+    def input(self):
+        base = self._base
+        unique_individuals = self._unique_individuals
+        vars = self._vars
+        if self._nfunc == 0:
+            return None
+        for _ in range(base._number_tries_feasible_ind):
+            args = []
+            func = self.function()
+            for f in func:
+                nargs = f.nargs
+                if len(args):
+                    vars.pos -= len(args)
+                if vars.empty():
+                    return None
+                args = vars.get(nargs)
+                if len(args) < f.min_nargs:
+                    return None
+                v = f(args,
+                      ytr=base._ytr, naive_bayes=base.naive_bayes,
+                      finite=base._finite, mask=base._mask)
+                sig = v.signature()
+                if sig in unique_individuals:
+                    continue
+                unique_individuals.add(sig)
+                v.height = 0
+                if not v.eval(base.X):
+                    continue
+                if not v.isfinite():
+                    continue
+                if not base._bagging_fitness.set_fitness(v):
+                    continue
+                return v
+        return None
 
 
 class BasePopulation(object):
@@ -205,105 +286,51 @@ class BasePopulation(object):
         index = fit[0]
         return vars[index]
 
-    def naive_bayes_input(self, density, unique_individuals, vars):
+    def variable_input(self, used_inputs):
         base = self._base
         for _ in range(base._number_tries_feasible_ind):
-            func = []
-            if base._min_density < density:
-                if np.random.random() < 0.5:
-                    func = [NaiveBayes, NaiveBayesMN]
-                else:
-                    func = [NaiveBayesMN, NaiveBayes]
-            else:
-                func = [NaiveBayesMN]
-            func = [x for x in func if x.nargs > 0]
-            args = []
-            for f in func:
-                if len(args) == 0:
-                    nargs = f.nargs if f.nargs < len(vars) else len(vars)
-                else:
-                    if f.nargs > len(args):
-                        missing = f.nargs - len(args)
-                        nargs = missing if missing < len(vars) else len(vars)
-                    else:
-                        for __ in range(len(args) - f.nargs):
-                            vars.append(args.pop())
-                        nargs = 0
-                for __ in range(nargs):
-                    index = np.random.randint(len(vars))
-                    args.append(vars[index])
-                    del vars[index]
-                if len(args) == 0:
-                    return None
-                elif len(args) < f.min_nargs:
-                    for __ in range(f.min_nargs - len(args)):
-                        k = np.random.randint(base._nvar)
-                        args.append(k)
-                v = f(args,
-                      ytr=base._ytr, naive_bayes=base.naive_bayes,
-                      finite=base._finite, mask=base._mask)
-                sig = v.signature()
-                if sig in unique_individuals:
-                    continue
-                unique_individuals.add(sig)
-                v.height = 0
-                if not v.eval(base.X):
-                    continue
-                if not v.isfinite():
-                    continue
-                if not base._bagging_fitness.set_fitness(v):
-                    continue
-                return v
-        return None
-
-    def variable_input_cl(self, used_inputs):
-        base = self._base
-        for _ in range(base._number_tries_feasible_ind):
-            nvar = len(used_inputs)
-            if nvar == 0:
+            if used_inputs.empty():
                 return None
-            var = np.random.randint(nvar)
-            _ = used_inputs[var]
-            del used_inputs[var]
-            var = base._random_leaf(_)
+            var = base._random_leaf(used_inputs.get_one())
             if var is not None:
                 return var
         return None
 
-    def create_population_cl(self):
+    def create_population(self):
+        "Create the initial population"
         base = self._base
-        density = sum([x.hy.density for x in base.X]) / base.nvar
         if base._share_inputs:
-            used_inputs_var = [x for x in range(base.nvar)]
+            used_inputs_var = SelectNumbers([x for x in range(base.nvar)])
             used_inputs_naive = used_inputs_var
         if base._pr_variable == 0:
-            used_inputs_var = []
-            used_inputs_naive = [x for x in range(base.nvar)]
+            used_inputs_var = SelectNumbers([])
+            used_inputs_naive = SelectNumbers([x for x in range(base.nvar)])
         elif base._pr_variable == 1:
-            used_inputs_var = [x for x in range(base.nvar)]
-            used_inputs_naive = []
+            used_inputs_var = SelectNumbers([x for x in range(base.nvar)])
+            used_inputs_naive = SelectNumbers([])
         else:
-            used_inputs_var = [x for x in range(base.nvar)]
-            used_inputs_naive = [x for x in range(base.nvar)]
-        unique_individuals = set()
+            used_inputs_var = SelectNumbers([x for x in range(base.nvar)])
+            used_inputs_naive = SelectNumbers([x for x in range(base.nvar)])
+        nb_input = Inputs(base, used_inputs_naive, functions=base._input_functions)
         while (base._all_inputs or
                (self.popsize < base.popsize and
                 not base.stopping_criteria())):
-            if base._all_inputs and len(used_inputs_var) == 0 and len(used_inputs_naive) == 0:
+            if base._all_inputs and used_inputs_var.empty() and used_inputs_naive.empty():
                 base._init_popsize = self.popsize
                 break
-            if len(used_inputs_var) and np.random.random() < base._pr_variable:
-                v = self.variable_input_cl(used_inputs_var)
+            if not used_inputs_var.empty() and np.random.random() < base._pr_variable:
+                v = self.variable_input(used_inputs_var)
                 if v is None:
-                    used_inputs_var = []
+                    used_inputs_var.pos = used_inputs_var.size
                     continue
-            elif len(used_inputs_naive):
-                v = self.naive_bayes_input(density, unique_individuals, used_inputs_naive)
-                if len(used_inputs_var) and len(used_inputs_naive) == 0:
+            elif not used_inputs_naive.empty():
+                v = nb_input.input()
+                # v = self.naive_bayes_input(density, unique_individuals, used_inputs_naive)
+                if not used_inputs_var.empty() and used_inputs_naive.empty():
                     base._pr_variable = 1
                 if v is None:
-                    used_inputs_naive = []
-                    if len(used_inputs_var):
+                    used_inputs_naive.pos = used_inputs_naive.size
+                    if not used_inputs_var.empty():
                         base._pr_variable = 1
                     continue
             else:
@@ -313,33 +340,6 @@ class BasePopulation(object):
                 self.generation = gen
             self.add(v)
 
-    def create_population(self):
-        "Create the initial population"
-        base = self._base
-        if base._classifier and base._multiple_outputs:
-            return self.create_population_cl()
-        vars = np.arange(len(base.X))
-        np.random.shuffle(vars)
-        vars = vars.tolist()
-        while (base._all_inputs or
-               (self.popsize < base.popsize and
-                not base.stopping_criteria())):
-            if len(vars):
-                v = base._random_leaf(vars.pop())
-                if v is None:
-                    continue
-            elif base._all_inputs:
-                base._init_popsize = self.popsize
-                break
-            else:
-                gen = self.generation
-                self.generation = 0
-                v = base.random_offspring()
-                self.generation = gen
-            self.add(v)
-
-
-class SteadyState(BasePopulation):
     def add(self, v):
         "Add an individual to the population"
         self.population.append(v)
@@ -370,7 +370,16 @@ class SteadyState(BasePopulation):
             gc.collect()
 
 
-class Generational(SteadyState):
+class SteadyState(BasePopulation):
+    def create_population(self):
+        super(SteadyState, self).create_population()
+        if self.popsize > self._popsize:
+            self.population.sort(key=lambda x: x.fitness, reverse=True)
+            [self.clean(x) for x in self.population[self._popsize:]]
+            self.population = self.population[:self._popsize]
+
+
+class Generational(BasePopulation):
     "Generational GP using a steady-state as base"
     def __init__(self, *args, **kwargs):
         self._inner = []
@@ -390,3 +399,85 @@ class Generational(SteadyState):
             self._inner = []
             self.generation += 1
             gc.collect()
+
+
+class HGenerational(Generational):
+    def input(self, vars):
+        base = self._base
+        function_set = base.function_set
+        function_selection = base._function_selection_ins
+        function_selection.density = base.population.density
+        function_selection.unfeasible_functions.clear()
+        for i in range(base._number_tries_feasible_ind):
+            if base._function_selection:
+                func_index = function_selection.tournament()
+            else:
+                func_index = function_selection.random_function()
+            func = function_set[func_index]
+            args = vars.get(func.nargs)
+            try:
+                if len(args) < func.min_nargs:
+                    return None
+            except AttributeError:
+                if len(args) < func.nargs:
+                    return None
+            args = [self.population[x].position for x in args]
+            f = base._random_offspring(func, args)
+            if f is None:
+                vars.pos -= len(args)
+                function_selection.unfeasible_functions.add(func_index)
+                continue
+            function_selection[func_index] = f.fitness
+            return f
+        return None
+
+    def extra_inputs(self):
+        base = self._base
+        if self.popsize <= self._popsize:
+            base._init_popsize = self.popsize
+            return
+        previous = 0
+        end = self.popsize
+        nvar = end
+        while nvar > self._popsize:
+            _ = [x for x in range(previous, end)]
+            vars = SelectNumbers(_)
+            while True:
+                f = self.input(vars)
+                if f is not None:
+                    self.add(f)
+                else:
+                    break
+            nvar = self.popsize - end
+            previous = end
+            end = self.popsize
+        base._unfeasible_counter = 0
+        base._init_popsize = self.popsize
+        if self.popsize > self._popsize:
+            self.population.sort(key=lambda x: x.fitness, reverse=True)
+            [self.clean(x) for x in self.population[self._popsize:]]
+            self.population = self.population[:self._popsize]
+
+    def create_population(self):
+        base = self._base
+        random = np.random.random
+        pr_variable = base._pr_variable
+        assert pr_variable < 1
+        nvar = base.nvar
+        _ = [x for x in range(nvar)]
+        used_inputs_naive = SelectNumbers(_)
+        nb_input = Inputs(base, used_inputs_naive,
+                          functions=base._input_functions)
+        variable_input = self.variable_input
+        add = self.add
+        input = nb_input.input
+        while not used_inputs_naive.empty():
+            if pr_variable > 0 and random() < pr_variable:
+                v = variable_input(used_inputs_naive)
+            else:
+                v = input()
+            if v is None:
+                used_inputs_naive.pos = used_inputs_naive.size
+                continue
+            add(v)
+        return self.extra_inputs()

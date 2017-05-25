@@ -778,7 +778,7 @@ def test_json_gzip_dependent_variable():
     print(open('output.evodag').read())
     os.unlink('output.evodag')
     default_nargs()
-
+    del os.environ['KLASS']
 
 def test_model_used_inputs_number():
     import os
@@ -835,3 +835,163 @@ def test_logging():
                 '-R', '--parameters', 'cache.evodag',
                 '--verbose=0', '-p3', '-e2', '-r2', fname]
     params()
+
+
+def test_model_seed():
+    import os
+    from EvoDAG.command_line import params, train
+    fname = mo_training_set()
+    sys.argv = ['EvoDAG', '--output-dim=3',
+                '-R', '--parameters',
+                'cache.evodag', '-p3', '-e2',
+                '-r2', fname]
+    params()
+    sys.argv = ['EvoDAG', '--parameters', 'cache.evodag',
+                '-n2', '--output-dim=3', '--seed=1',
+                '--model', 'model.evodag',
+                '--test', fname, fname]
+    c = train(output=True)
+    os.unlink('cache.evodag')
+    default_nargs()
+    assert c.data.seed == 1
+
+
+def test_create_ensemble():
+    import os
+    from EvoDAG.command_line import params, train, utils
+    from EvoDAG.model import Ensemble
+    import pickle
+    import gzip
+    fname = mo_training_set()
+    sys.argv = ['EvoDAG', '--output-dim=3',
+                '-R', '--parameters',
+                'cache.evodag', '-p3', '-e2',
+                '-r2', fname]
+    params()
+    sys.argv = ['EvoDAG', '--parameters', 'cache.evodag',
+                '-n1', '--output-dim=3', '--seed=1',
+                '--model', 'model.evodag.1',
+                '--test', fname, fname]
+    train()
+    sys.argv = ['EvoDAG', '--parameters', 'cache.evodag',
+                '-n1', '--output-dim=3', '--seed=2',
+                '--model', 'model.evodag.2',
+                '--test', fname, fname]
+    train()
+    os.unlink('cache.evodag')
+    sys.argv = ['EvoDAG', '--create-ensemble', '-omodel.evodag',
+                '-n3', 'model.evodag.* model.evodag.1']
+    utils()
+    os.unlink('model.evodag.1')
+    os.unlink('model.evodag.2')
+    with gzip.open('model.evodag', 'r') as fpt:
+        ens = pickle.load(fpt)
+    assert isinstance(ens, Ensemble)
+    os.unlink('model.evodag')
+    default_nargs()
+
+
+def test_input_type_constraint_R():
+    from EvoDAG.command_line import params
+    from EvoDAG.utils import PARAMS
+    fname = mo_training_set()
+    sys.argv = ['EvoDAG', '--output-dim=3',
+                '-R', '--parameters', 'cache.evodag',
+                '--verbose=0', '-p3', '-e2', '-r2', fname]
+    c = params(output=True)
+    _params = PARAMS.copy()
+    c.if_type_contraint(_params)
+    print(_params['input_functions'], 'MultipleVariables')
+    assert _params['input_functions'][0] == 'MultipleVariables'
+
+
+def test_input_type_constraint_C():
+    from EvoDAG.command_line import params
+    from EvoDAG.utils import PARAMS
+    fname = mo_training_set()
+    sys.argv = ['EvoDAG', '--output-dim=3',
+                '-C', '--parameters', 'cache.evodag',
+                '--verbose=0', '-p3', '-e2', '-r2', fname]
+    c = params(output=True)
+    _params = PARAMS.copy()
+    c.if_type_contraint(_params)
+    print(_params['input_functions'], 'MultipleVariables')
+    assert len(_params['input_functions']) == 4
+    
+
+def test_params_files():
+    import os
+    from EvoDAG.command_line import params
+    import shutil
+    fname = training_set()
+    sys.argv = ['EvoDAG', '-C', '-Pcache', '--only-paramsfiles',
+                '-r', '2', fname]
+    params()
+    if os.path.isdir('cache'):
+        shutil.rmtree('cache')
+        default_nargs()
+        return
+    assert False
+
+
+def test_get_best_params_files():
+    import numpy as np
+    import gzip
+    import pickle
+    import os
+    from EvoDAG.command_line import params, train, utils
+    import shutil
+    from glob import glob
+    if os.path.isdir('cache'):
+        shutil.rmtree('cache')
+    fname = training_set()
+    sys.argv = ['EvoDAG', '-C', '-Pcache', '--only-paramsfiles',
+                '-r', '2', fname]
+    params()
+    for p in glob('cache/*_params.json'):
+        basename = p.split('_params.json')[0]
+        for s in range(3):
+            model = basename + '_%s.model' % s
+            sys.argv = ['EvoDAG', '-s%s' % s, '-P%s' % p, '-m%s' % model, '-n1', fname]
+            train()
+    R = []
+    for p in range(2):
+        l = []
+        for s in range(3):
+            with gzip.open('cache/%s_%s.model' % (p, s)) as fpt:
+                m = pickle.load(fpt)
+                l.append(m.fitness_vs * -1)
+        R.append((p, l))
+    m = min(R, key=lambda x: np.median(x[1]))
+    param = '%s_params.json' % m[0]
+    sys.argv = ['EvoDAG', '--best-params-file', 'cache']
+    c = utils(output=True)
+    assert c.best_params == param
+    sys.argv = ['EvoDAG', '-u2', '--best-params-file', 'cache']
+    c = utils(output=True)
+    assert c.best_params == param
+    if os.path.isdir('cache'):
+        shutil.rmtree('cache')
+        default_nargs()
+
+
+def test_json2():
+    from EvoDAG.command_line import params
+    import tempfile
+    import json
+    fname = tempfile.mktemp()
+    with open(fname, 'w') as fpt:
+        for x, y in zip(X, cl):
+            a = {}
+            a['vec'] = [[k, v] for k, v in enumerate(x)]
+            a['klass'] = int(y)
+            a['vecsize'] = len(x)
+            fpt.write(json.dumps(a) + '\n')
+    print("termine con el json")
+    sys.argv = ['EvoDAG', '-C', '-Poutput.evodag', '--json',
+                '-e1', '-p3', '-r2', fname]
+    params()
+    os.unlink(fname)
+    print(open('output.evodag').read())
+    os.unlink('output.evodag')
+    default_nargs()

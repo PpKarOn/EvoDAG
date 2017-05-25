@@ -118,7 +118,6 @@
         40
     ],
     "NaiveBayesMN": [
-        0,
         2,
         5,
         10,
@@ -178,6 +177,12 @@
     ],
     "generations": [
         null
+    ],
+    "input_functions": [
+	["NaiveBayes", "NaiveBayesMN", "MultipleVariables"],
+	["NaiveBayes"],
+	["NaiveBayesMN"],
+	["MultipleVariables"]
     ],
     "min_density": [
         0.8

@@ -18,6 +18,7 @@ from cpython.list cimport PyList_GET_SIZE, PyList_GET_ITEM, PyList_New, PyList_A
 from cpython cimport array
 from cpython cimport list
 from libc cimport math
+import random
 cimport cython
 
 
@@ -181,15 +182,14 @@ cpdef list naive_bayes_Nc(SparseArray var, array.array klass, array.array mask, 
 
 @cython.cdivision(True)
 cpdef list naive_bayes_MN(list var, list coef, unsigned int nclass):
-    cdef Py_ssize_t i, j
+    cdef Py_ssize_t i, j, k
     cdef list l = <list> PyList_GET_ITEM(coef, 0)
     cdef array.array p_klass = <array.array> PyList_GET_ITEM(l, 1), m_klass
-    cdef double *p_klass_value = p_klass.data.as_doubles, a, *m_klass_value
+    cdef double *p_klass_value = p_klass.data.as_doubles, *m_klass_value
     cdef SparseArray b = <SparseArray> PyList_GET_ITEM(var, 0), v
     cdef unsigned int nvar = len(var)
     cdef list res = []
     for i in range(nclass):
-        a = p_klass_value[i]
         b = b.mul2(0)
         for j in range(nvar):
             v = <SparseArray> PyList_GET_ITEM(var, j)
@@ -199,5 +199,38 @@ cpdef list naive_bayes_MN(list var, list coef, unsigned int nclass):
             b = b.add(v.mul2(m_klass_value[i]))
         # b = b.add2(p_klass_value[i])
         b = b.add(SparseArray.constant(p_klass_value[i], b.index, b._len))
+        m_klass_value = b.data.data.as_doubles
+        for k in range(b.non_zero):
+            m_klass_value[k] = math.exp(m_klass_value[k])
         PyList_Append(res, b)
     return res
+
+
+cdef class SelectNumbers:
+    cdef array.array data
+    cdef public Py_ssize_t pos
+    cdef public Py_ssize_t size
+    def __cinit__(self, list lst):
+        random.shuffle(lst)
+        self.data = array.array('I', lst)
+        self.size = PyList_GET_SIZE(lst)
+        self.pos = 0
+
+    cpdef list get(self, Py_ssize_t k):
+        cdef Py_ssize_t end = self.pos + k, i, pos = self.pos
+        cdef list res = PyList_New(0)
+        cdef array.array data = self.data
+        if end > self.size:
+            end = self.size
+        self.pos = end
+        for i in range(pos, end):
+            PyList_Append(res, data[i])
+        return res
+
+    cpdef int get_one(self):
+        cdef pos = self.pos
+        self.pos += 1
+        return self.data[pos]
+    
+    cpdef bint empty(self):
+        return self.pos == self.size
