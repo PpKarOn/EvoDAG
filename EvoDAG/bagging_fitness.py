@@ -16,12 +16,47 @@
 import numpy as np
 from SparseArray import SparseArray
 from .utils import tonparray
-from .cython_utils import fitness_SAE
+from .cython_utils import fitness_SAE, Score
 
 
 class BaggingFitness(object):
     def __init__(self, base=None):
         self._base = base
+        self.assert_fitness_function()
+
+    def assert_fitness_function(self):
+        base = self._base
+        assert base._fitness_function in ['ER', 'macro-F1', 'BER', 'macro-Precision',
+                                          'DotF1', 'DotRecall', 'DotPrecision',
+                                          'DotRecallDotPrecision', 'F1',
+                                          'RecallDotPrecision', 'macro-RecallF1',
+                                          'accDotMacroF1']
+
+    @property
+    def nclasses(self):
+        try:
+            return self._nclasses
+        except AttributeError:
+            self._nclasses = self._base._labels.shape[0]
+        return self._nclasses
+
+    @property
+    def score(self):
+        try:
+            return self._score
+        except AttributeError:
+            self._score = Score(self.nclasses)
+        return self._score
+
+    @property
+    def min_class(self):
+        try:
+            return self._min_class
+        except AttributeError:
+            klass = tonparray(self._base._y_klass)
+            c = [(klass == x).sum() for x in np.unique(klass)]
+            self._min_class = np.argmin(c)
+        return self._min_class
 
     def mask_fitness_BER(self, k):
         base = self._base
@@ -47,23 +82,23 @@ class BaggingFitness(object):
         base = self._base
         if base._fitness_function == 'BER':
             return self.mask_fitness_BER(k)
-        elif base._fitness_function == 'ER':
-            k = k.argmax(axis=1)
-            base._y_klass = SparseArray.fromlist(k)
-            cnt = k.shape[0] * (1 - base._tr_fraction)
-            cnt = int(np.floor(cnt))
-            if cnt == 0:
-                cnt = 1
-            mask = np.ones_like(k, dtype=np.bool)
-            mask_ts = np.zeros(k.shape[0])
-            index = np.arange(k.shape[0])
-            np.random.shuffle(index)
-            mask[index[:cnt]] = False
-            mask_ts[index[cnt:]] = 1.0
-            base._mask_vs = SparseArray.fromlist(~mask)
-            base._mask_ts = SparseArray.fromlist(mask_ts / mask_ts.sum())
-            return mask
-        raise RuntimeError('Unknown fitness function %s' % self._fitness_function)
+        elif base._fitness_function == 'macro-RecallF1':
+            return self.mask_fitness_BER(k)
+        k = k.argmax(axis=1)
+        base._y_klass = SparseArray.fromlist(k)
+        cnt = k.shape[0] * (1 - base._tr_fraction)
+        cnt = int(np.floor(cnt))
+        if cnt == 0:
+            cnt = 1
+        mask = np.ones_like(k, dtype=np.bool)
+        mask_ts = np.zeros(k.shape[0])
+        index = np.arange(k.shape[0])
+        np.random.shuffle(index)
+        mask[index[:cnt]] = False
+        mask_ts[index[cnt:]] = 1.0
+        base._mask_vs = SparseArray.fromlist(~mask)
+        base._mask_ts = SparseArray.fromlist(mask_ts / mask_ts.sum())
+        return mask
 
     def set_classifier_mask(self, v, base_mask=True):
         """Computes the mask used to create the training and validation set"""
@@ -169,8 +204,79 @@ class BaggingFitness(object):
         if base._classifier:
             if base._multiple_outputs:
                 hy = SparseArray.argmax(v.hy)
-                v._error = (base._y_klass - hy).sign().fabs()
-                v.fitness = - v._error.dot(base._mask_ts)
+                if base._fitness_function == 'macro-F1':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.macroF1(base._y_klass, hy, base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'DotF1':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.DotF1(base._y_klass, hy, base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'DotRecallDotPrecision':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.DotRecallDotPrecision(base._y_klass, hy,
+                                                                base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'BER':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.macroRecall(base._y_klass, hy, base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'DotRecall':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.DotRecall(base._y_klass, hy,
+                                                    base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'macro-Precision':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.macroPrecision(base._y_klass, hy,
+                                                         base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'DotPrecision':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.DotPrecision(base._y_klass, hy,
+                                                       base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1   
+                elif base._fitness_function == 'accDotMacroF1':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.accDotMacroF1(base._y_klass, hy,
+                                                        base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'macro-RecallF1':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.macroRecallF1(base._y_klass, hy,
+                                                        base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'F1':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.F1(self.min_class, base._y_klass,
+                                             hy, base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'RecallDotPrecision':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.RecallDotPrecision(self.min_class, base._y_klass,
+                                                             hy, base._mask_ts.index)
+                    v._error = mf1_v - 1
+                    v.fitness = mf1 - 1
+                elif base._fitness_function == 'ER':
+                    f1_score = self.score
+                    mf1, mf1_v = f1_score.errorRate(base._y_klass,
+                                                    hy, base._mask_ts.index)
+                    v._error = -mf1_v
+                    v.fitness = -mf1
+                else:
+                    raise RuntimeError('Unknown fitness function %s' % base._fitness_function)
+                # v._error = (base._y_klass - hy).sign().fabs()
+                # v.fitness = - v._error.dot(base._mask_ts)
             else:
                 v.fitness = -base._ytr.SSE(v.hy * base._mask)
         else:
@@ -185,7 +291,21 @@ class BaggingFitness(object):
         base = self._base
         if base._classifier:
             if base._multiple_outputs:
-                v.fitness_vs = - v._error.dot(base._mask_vs) / base._mask_vs.sum()
+                v.fitness_vs = v._error
+                # if base._fitness_function == 'macro-F1':
+                #     v.fitness_vs = v._error
+                # elif base._fitness_function == 'BER':
+                #     v.fitness_vs = v._error
+                # elif base._fitness_function == 'macro-Precision':
+                #     v.fitness_vs = v._error
+                # elif base._fitness_function == 'accDotMacroF1':
+                #     v.fitness_vs = v._error
+                # elif base._fitness_function == 'macro-RecallF1':
+                #     v.fitness_vs = v._error
+                # elif base._fitness_function == 'F1':
+                #     v.fitness_vs = v._error
+                # else:
+                #     v.fitness_vs = - v._error.dot(base._mask_vs) / base._mask_vs.sum()
             else:
                 v.fitness_vs = -((base.y - v.hy.sign()).sign().fabs() *
                                  base._mask_vs).sum()
