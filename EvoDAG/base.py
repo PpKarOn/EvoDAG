@@ -42,7 +42,7 @@ class EvoDAG(object):
                                Sq, Min, Max, Atan2, Hypot, Acos, Asin, Atan,
                                Tan, Cosh, Sinh, Tanh, Acosh, Asinh, Atanh,
                                Expm1, Log, Log2, Log10, Lgamma, Sign,
-                               Ceil, Floor, NaiveBayes, NaiveBayesMN],
+                               Ceil, Floor, NaiveBayes,NaiveBayesMN],
                  tr_fraction=0.5, population_class=SteadyState,
                  number_tries_feasible_ind=30, time_limit=None,
                  unique_individuals=True, classifier=True,
@@ -452,7 +452,7 @@ class EvoDAG(object):
             k = self.population.tournament()
             args.append(k)
             while len(args)<func.nargs:
-                m = self.tournament_orthogonality(2,args)
+                m = self.tournament_orthogonality(50,args)
                 args.append(m)
             return args
         ''''''
@@ -462,7 +462,7 @@ class EvoDAG(object):
             k = self.population.tournament()
             args.append(k)
             desired_unique = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
-            j = self.tournament_desired(desired_unique,2,args)
+            j = self.tournament_desired(desired_unique,50,args)
             args.append(j)
 
             while len(args)<func.nargs:
