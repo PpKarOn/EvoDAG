@@ -7,8 +7,11 @@
         false
     ],
     "Add": [
+        2,
         5,
-        10
+        10,
+        20,
+        40
     ],
     "Argmax": [
         0
@@ -17,6 +20,7 @@
         0
     ],
     "Asin": [
+        true,
         false
     ],
     "Asinh": [
@@ -82,24 +86,43 @@
         false
     ],
     "Max": [
+        0,
+        2,
+        5,
         10,
-        20
+        20,
+        40
     ],
     "Min": [
+        0,
+        2,
+        5,
         10,
-        20
+        20,
+        40
     ],
     "Mul": [
+        0,
+        2,
+        5,
         10,
-        20
+        20,
+        40
     ],
     "NaiveBayes": [
+        0,
+        2,
         5,
-        10
+        10,
+        20,
+        40
     ],
     "NaiveBayesMN": [
+        2,
         5,
-        10
+        10,
+        20,
+        40
     ],    
     "Sign": [
         false
@@ -143,7 +166,7 @@
         true
     ],    
     "fitness_function": [
-        "DotF1"
+        "BER"
     ],
     "fs_tournament_size": [
 	2
@@ -180,9 +203,7 @@
         "Generational"
     ],
     "pr_variable": [
-	0.4,
-	0.7,
-	1.0
+	0.7
     ],
     "share_inputs": [
         false
