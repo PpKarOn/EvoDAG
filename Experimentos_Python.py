@@ -11,15 +11,15 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-folderRes = '../res/TDO/'
+folderRes = '../res/TDO10/'
 folderData = '../data/'
-ncores = 32
+ncores = 4
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
-datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
-#datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+#datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
+datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-os.chdir('/shared/cnsanchez/EvoDAG')
-#os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
+#os.chdir('/shared/cnsanchez/EvoDAG')
+os.chdir('/home/up/Documents/DOCTORADO/CODIGO/EvoDAG')
 
 columns=['dataset','error','fitness','size']
 index=numpy.arange(len(datasets))
@@ -46,8 +46,9 @@ for i in range(len(datasets)):
         fitness += float(p.stdout.read().decode("utf-8")[16:-1])
         D1 = pandas.read_csv(filePredict,sep=",")
         D2 = pandas.read_csv(fileDataTestLabels,sep=",")
-        os.system('echo '+str(len(D1.values))+'-'+str(len(D2.values)))
-        error += BER(D1.values,D2.values)
+        e = BER(D1.values,D2.values)
+        error += e
+        os.system('echo '+archivo+' '+str(j)+':'+str(e))
     error /= datasets_size[i]
     size /= datasets_size[i]
     fitness /= datasets_size[i]
@@ -56,6 +57,6 @@ for i in range(len(datasets)):
     df['fitness'][i] = fitness
     df['size'][i] = size
     print(df)
-    df.to_csv(folderRes+'ares'+str(datasets_size[0])+'.csv',sep=',')
+    df.to_csv(folderRes+'ares.csv',sep=',')
 print(df)
 

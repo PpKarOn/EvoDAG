@@ -452,7 +452,7 @@ class EvoDAG(object):
             k = self.population.tournament()
             args.append(k)
             while len(args)<func.nargs:
-                m = self.tournament_orthogonality(50,args)
+                m = self.tournament_orthogonality(10,args)
                 args.append(m)
             return args
         ''''''
@@ -462,7 +462,7 @@ class EvoDAG(object):
             k = self.population.tournament()
             args.append(k)
             desired_unique = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
-            j = self.tournament_desired(desired_unique,50,args)
+            j = self.tournament_desired(desired_unique,10,args)
             args.append(j)
 
             while len(args)<func.nargs:
@@ -471,7 +471,7 @@ class EvoDAG(object):
                 if individual is None:
                     break
                 desired_unique = EvoDAG.calculate_desired(func,self.y,individual.hy)
-                m = self.tournament_desired(desired_unique,2,args)
+                m = self.tournament_desired(desired_unique,10,args)
                 args.append(m)
             return args
         ''''''
