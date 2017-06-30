@@ -440,12 +440,12 @@ class EvoDAG(object):
 
     def get_args(self, func):
         args = []
-        '''
+        ''''''
         if func.nargs == 1:
-            k = self.tournament_closer(func,2)
+            k = self.tournament_closer(func,10)
             args.append(k)
             return args
-        '''
+        ''''''
         #Searching n arguments based on orthogonality
         ''''''
         if func.symbol == '+' or func.symbol == 'NB' or func.symbol == 'MN':

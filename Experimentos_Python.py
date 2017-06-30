@@ -11,7 +11,8 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-folderRes = '../res/TDO10/'
+folderParams = '../res/TF/'
+folderRes = '../res/TDOF10/'
 folderData = '../data/'
 ncores = 4
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
@@ -34,10 +35,10 @@ for i in range(len(datasets)):
         fileDataTrain = folderData+archivo+'_train_'+str(j)+'.csv'
         fileDataTestData = folderData+archivo+'_test_data_'+str(j)+'.csv'
         fileDataTestLabels = folderData+archivo+'_test_labels_'+str(j)+'.csv'
-        fileParams = folderRes+archivo+'_test_data_'+str(j)+ '.params'
+        fileParams = folderParams+archivo+'_test_data_'+str(j)+ '.params'
         fileModel = folderRes+archivo+'_test_data_'+str(j)+'.model'
         filePredict = folderRes+archivo+'_test_data_'+str(j)+ '.predict'
-        os.system('EvoDAG-params -C -P ' +fileParams+' -u '+str(ncores)+' '+fileDataTrain)
+        #os.system('EvoDAG-params -C -P ' +fileParams+' -u '+str(ncores)+' '+fileDataTrain)
         os.system('EvoDAG-train -P '+fileParams+' -m '+fileModel+' -u '+str(ncores)+' '+fileDataTrain)
         os.system('EvoDAG-predict -m '+fileModel+' -o '+filePredict+' -u '+str(ncores)+' '+fileDataTestData)
         p = subprocess.Popen(['EvoDAG-utils --size ' +fileModel],stdout=subprocess.PIPE,shell=True)

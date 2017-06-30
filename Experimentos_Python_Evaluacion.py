@@ -13,8 +13,8 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-res = ['TF','TDO','TDO10']
-folderRes = ['../res/TF/','../res/TDO/','../res/TDO10/']
+res = ['TF','TDO','TDOF']
+folderRes = ['../res/TF/','../res/TDO/','../res/TDOF/']
 folderData = '../data/'
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
 #datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
@@ -46,7 +46,6 @@ for i in range(len(datasets)):
         v = numpy.median( numpy.array(ber) )
         strv += '& '+str( round(v,4))
     print(strv + '\\\\ \\hline')
-
 print(' ')
 
 ####### Fitness Table ###########################################
@@ -74,6 +73,7 @@ for i in range(len(datasets)):
         v = numpy.median( numpy.array(value) )
         strv += '& '+str( round(v,4))
     print(strv + '\\\\ \\hline')
+print(' ')
 
 ####### Size Table ###########################################
 strv = 'Data set '
