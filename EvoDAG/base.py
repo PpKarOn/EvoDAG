@@ -338,12 +338,16 @@ class EvoDAG(object):
                     desired.append(SparseArray.sub(y[i],hy[i]))
                 elif func.symbol == '*':
                     desired.append(SparseArray.div(y[i],hy[i]))
+                elif func.symbol == '/':
+                    desired.append(SparseArray.div(hy[i],y[i]))
                 desired_unique.append(SparseArray.unit_vector(desired[i]))
         else:
             if func.symbol == '+':
                 desired = SparseArray.sub(y,hy)
             elif func.symbol == '*':
                 desired = SparseArray.div(y,hy)
+            elif func.symbol == '/':
+                desired = SparseArray.div(hy,y)
             desired_unique = SparseArray.unit_vector(desired)
         return desired_unique
 
@@ -452,17 +456,17 @@ class EvoDAG(object):
             k = self.population.tournament()
             args.append(k)
             while len(args)<func.nargs:
-                m = self.tournament_orthogonality(10,args)
+                m = self.tournament_orthogonality(2,args)
                 args.append(m)
             return args
         ''''''
         ''''''
         #Searching n arguments based on desired unique vectors
-        if func.symbol == '*':
+        if func.symbol == '*' or func.symbol == '/':
             k = self.population.tournament()
             args.append(k)
             desired_unique = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
-            j = self.tournament_desired(desired_unique,10,args)
+            j = self.tournament_desired(desired_unique,2,args)
             args.append(j)
 
             while len(args)<func.nargs:
@@ -471,7 +475,7 @@ class EvoDAG(object):
                 if individual is None:
                     break
                 desired_unique = EvoDAG.calculate_desired(func,self.y,individual.hy)
-                m = self.tournament_desired(desired_unique,10,args)
+                m = self.tournament_desired(desired_unique,2,args)
                 args.append(m)
             return args
         ''''''

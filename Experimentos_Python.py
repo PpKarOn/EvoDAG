@@ -11,16 +11,16 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-folderParams = '../res/TF/'
-folderRes = '../res/TDOF10/'
+folderParams = '../res/res/TDOF/'
+folderRes = '../res/res/TDOF/'
 folderData = '../data/'
-ncores = 4
+ncores = 32
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
-#datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
-datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
+#datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-#os.chdir('/shared/cnsanchez/EvoDAG')
-os.chdir('/home/up/Documents/DOCTORADO/CODIGO/EvoDAG')
+os.chdir('/shared/cnsanchez/EvoDAG')
+#os.chdir('/home/up/Documents/DOCTORADO/CODIGO/EvoDAG')
 
 columns=['dataset','error','fitness','size']
 index=numpy.arange(len(datasets))
@@ -38,7 +38,7 @@ for i in range(len(datasets)):
         fileParams = folderParams+archivo+'_test_data_'+str(j)+ '.params'
         fileModel = folderRes+archivo+'_test_data_'+str(j)+'.model'
         filePredict = folderRes+archivo+'_test_data_'+str(j)+ '.predict'
-        #os.system('EvoDAG-params -C -P ' +fileParams+' -u '+str(ncores)+' '+fileDataTrain)
+        os.system('EvoDAG-params -C -P ' +fileParams+' -u '+str(ncores)+' '+fileDataTrain)
         os.system('EvoDAG-train -P '+fileParams+' -m '+fileModel+' -u '+str(ncores)+' '+fileDataTrain)
         os.system('EvoDAG-predict -m '+fileModel+' -o '+filePredict+' -u '+str(ncores)+' '+fileDataTestData)
         p = subprocess.Popen(['EvoDAG-utils --size ' +fileModel],stdout=subprocess.PIPE,shell=True)
