@@ -14,6 +14,7 @@
 
 import random
 import numpy as np
+import math
 import logging
 from SparseArray import SparseArray
 from .node import Variable
@@ -332,7 +333,7 @@ class EvoDAG(object):
     def calculate_desired(func,y,hy):
         if isinstance(y,list):
             desired = []
-            desired_unique = []
+            #desired_unique = []
             for i in range(len(y)):
                 if func.symbol == '+':
                     desired.append(SparseArray.sub(y[i],hy[i]))
@@ -340,7 +341,7 @@ class EvoDAG(object):
                     desired.append(SparseArray.div(y[i],hy[i]))
                 elif func.symbol == '/':
                     desired.append(SparseArray.div(hy[i],y[i]))
-                desired_unique.append(SparseArray.unit_vector(desired[i]))
+                #desired_unique.append(SparseArray.unit_vector(desired[i]))
         else:
             if func.symbol == '+':
                 desired = SparseArray.sub(y,hy)
@@ -348,8 +349,9 @@ class EvoDAG(object):
                 desired = SparseArray.div(y,hy)
             elif func.symbol == '/':
                 desired = SparseArray.div(hy,y)
-            desired_unique = SparseArray.unit_vector(desired)
-        return desired_unique
+            #desired_unique = SparseArray.unit_vector(desired)
+        return desired
+        #return desired_unique
 
     @staticmethod
     def calculate_semantic_difference(semantics1,semantics2):
@@ -360,6 +362,20 @@ class EvoDAG(object):
         else:
             dif = sum(SparseArray.fabs(SparseArray.sub(semantics1,semantics2)).data) 
         return dif
+
+    def calculate_semantic_similarity(semantics1,semantics2):
+        sim = 0
+        if isinstance(semantics1,list):
+            for i in range(len(semantics1)):
+                cossim = SparseArray.dot(semantics1[i],semantics2[i])
+                cossim /= math.sqrt(sum(SparseArray.sq(semantics1[i]).data))
+                cossim /= math.sqrt(sum(SparseArray.sq(semantics2[i]).data))
+                sim += cossim
+        else:
+            sim = SparseArray.dot(semantics1,semantics2)
+            sim /= math.sqrt(sum(SparseArray.sq(semantics1).data))
+            sim /= math.sqrt(sum(SparseArray.sq(semantics2).data))
+        return sim
 
     def get_sample_population(self,size):
         if size >= self.population.popsize or size == 0:
@@ -388,7 +404,20 @@ class EvoDAG(object):
             if arg not in args:
                 return int(arg)
         return 0
-    
+        
+    def tournament_desired_cosine_similarity(self,desired_semantics,size,args):
+        sample,size = self.get_sample_population(size)
+        Sim = np.zeros((size,2),float)
+        for i in range(size):
+            k = sample[i]
+            Sim[i,0] = k
+            Sim[i,1] = EvoDAG.calculate_semantic_similarity(desired_semantics,self.population.hist[self.population.population[k].position].hy)
+        arguments = Sim[ np.argsort(Sim[:,1]),0 ]
+        for arg in reversed(arguments):
+            if arg not in args:
+                return int(arg)
+        return 0
+
     def tournament_closer(self,func,size):
         if random.random() <= 0.5:
             return self.population.tournament()
@@ -465,8 +494,9 @@ class EvoDAG(object):
         if func.symbol == '*' or func.symbol == '/':
             k = self.population.tournament()
             args.append(k)
-            desired_unique = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
-            j = self.tournament_desired(desired_unique,2,args)
+            desired_semantics = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
+            #j = self.tournament_desired(desired_unique,2,args)
+            j = self.tournament_desired_cosine_similarity(desired_semantics,2,args)
             args.append(j)
 
             while len(args)<func.nargs:
@@ -474,8 +504,9 @@ class EvoDAG(object):
                 individual = self._random_offspring(func, argsi)
                 if individual is None:
                     break
-                desired_unique = EvoDAG.calculate_desired(func,self.y,individual.hy)
-                m = self.tournament_desired(desired_unique,2,args)
+                desired_semantics = EvoDAG.calculate_desired(func,self.y,individual.hy)
+                #m = self.tournament_desired(desired_unique,2,args)
+                m = self.tournament_desired_cosine_similarity(desired_semantics,2,args)
                 args.append(m)
             return args
         ''''''
