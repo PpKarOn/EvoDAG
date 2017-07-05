@@ -43,7 +43,8 @@ for i in range(len(datasets)):
         os.system('EvoDAG-train -P '+fileParams+' -m '+fileModel+' -u '+str(ncores)+' '+fileDataTrain)
         os.system('EvoDAG-predict -m '+fileModel+' -o '+filePredict+' -u '+str(ncores)+' '+fileDataTestData)
         p = subprocess.Popen(['EvoDAG-utils --size ' +fileModel],stdout=subprocess.PIPE,shell=True)
-        size += float(p.stdout.read().decode("utf-8")[6:-1])
+        #size += float(p.stdout.read().decode("utf-8")[6:-1])
+        size = 0
         p = subprocess.Popen(['EvoDAG-utils --fitness ' +fileModel],stdout=subprocess.PIPE,shell=True)
         fitness += float(p.stdout.read().decode("utf-8")[16:-1])
         D1 = pandas.read_csv(filePredict,sep=",")

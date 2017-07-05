@@ -367,14 +367,22 @@ class EvoDAG(object):
         sim = 0
         if isinstance(semantics1,list):
             for i in range(len(semantics1)):
-                cossim = SparseArray.dot(semantics1[i],semantics2[i])
-                cossim /= math.sqrt(sum(SparseArray.sq(semantics1[i]).data))
-                cossim /= math.sqrt(sum(SparseArray.sq(semantics2[i]).data))
+                prod = SparseArray.dot(semantics1[i],semantics2[i])
+                n1 = math.sqrt(sum(SparseArray.sq(semantics1[i]).data))
+                n2 = math.sqrt(sum(SparseArray.sq(semantics2[i]).data))
+                if n1 == 0 or n2 == 0 or prod == 0:
+                    cossim = 0
+                else:
+                    cossim = prod/(n1*n2)
                 sim += cossim
         else:
-            sim = SparseArray.dot(semantics1,semantics2)
-            sim /= math.sqrt(sum(SparseArray.sq(semantics1).data))
-            sim /= math.sqrt(sum(SparseArray.sq(semantics2).data))
+            prod = SparseArray.dot(semantics1,semantics2)
+            n1 = math.sqrt(sum(SparseArray.sq(semantics1).data))
+            n2 = math.sqrt(sum(SparseArray.sq(semantics2).data))
+            if n1 == 0 or n2 == 0 or prod == 0:
+                sim = 0
+            else:
+                sim = prod/(n1*n2)
         return sim
 
     def get_sample_population(self,size):
