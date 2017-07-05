@@ -353,6 +353,7 @@ class EvoDAG(object):
         return desired
         #return desired_unique
 
+    '''
     @staticmethod
     def calculate_semantic_difference(semantics1,semantics2):
         dif = 0
@@ -362,8 +363,16 @@ class EvoDAG(object):
         else:
             dif = sum(SparseArray.fabs(SparseArray.sub(semantics1,semantics2)).data) 
         return dif
-
-    def calculate_semantic_similarity(semantics1,semantics2):
+    '''
+    '''
+    @staticmethod
+    def calculate_orthogonality(vectors,vector):
+        o = 0
+        for v in vectors:
+            o+= abs(SparseArray.dot(v,vector))
+        return o
+    '''
+    def cosine_similarity(semantics1,semantics2):
         sim = 0
         if isinstance(semantics1,list):
             for i in range(len(semantics1)):
@@ -399,7 +408,7 @@ class EvoDAG(object):
             done[k] = 1
             res.append(k)
         return res,size
-
+    '''
     def tournament_desired(self,desired_unique,size,args):
         sample,size = self.get_sample_population(size)
         Dif = np.zeros((size,2),float)
@@ -412,14 +421,14 @@ class EvoDAG(object):
             if arg not in args:
                 return int(arg)
         return 0
-        
-    def tournament_desired_cosine_similarity(self,desired_semantics,size,args):
+    '''    
+    def tournament_desired(self,desired_semantics,size,args):
         sample,size = self.get_sample_population(size)
         Sim = np.zeros((size,2),float)
         for i in range(size):
             k = sample[i]
             Sim[i,0] = k
-            Sim[i,1] = EvoDAG.calculate_semantic_similarity(desired_semantics,self.population.hist[self.population.population[k].position].hy)
+            Sim[i,1] = EvoDAG.cosine_similarity(desired_semantics,self.population.hist[self.population.population[k].position].hy)
         arguments = Sim[ np.argsort(Sim[:,1]),0 ]
         for arg in reversed(arguments):
             if arg not in args:
@@ -449,13 +458,6 @@ class EvoDAG(object):
 
         return arg
 
-    @staticmethod
-    def calculate_orthogonality(vectors,vector):
-        o = 0
-        for v in vectors:
-            o+= abs(SparseArray.dot(v,vector))
-        return o
-
     def tournament_orthogonality(self,size,args):
         sample,size = self.get_sample_population(size)
         vectors = []
@@ -472,7 +474,9 @@ class EvoDAG(object):
             if isinstance( self.population.hist[self.population.population[k].position].hy,list ):
                 vector = self.population.hist[self.population.population[k].position].hy[0]
             Dif[i,0] = k
-            Dif[i,1] = EvoDAG.calculate_orthogonality(vectors,vector)
+            Dif[i,1] = 0
+            for j in range(len(vectors)):
+                Dif[i,1] += EvoDAG.cosine_similarity(vectors[j],vector)
         arguments = Dif[ np.argsort(Dif[:,1]),0]
         for arg in arguments:
             if arg not in args:
@@ -504,7 +508,7 @@ class EvoDAG(object):
             args.append(k)
             desired_semantics = EvoDAG.calculate_desired(func,self.y,self.population.hist[self.population.population[k].position].hy)
             #j = self.tournament_desired(desired_unique,2,args)
-            j = self.tournament_desired_cosine_similarity(desired_semantics,2,args)
+            j = self.tournament_desired(desired_semantics,2,args)
             args.append(j)
 
             while len(args)<func.nargs:
@@ -514,7 +518,7 @@ class EvoDAG(object):
                     break
                 desired_semantics = EvoDAG.calculate_desired(func,self.y,individual.hy)
                 #m = self.tournament_desired(desired_unique,2,args)
-                m = self.tournament_desired_cosine_similarity(desired_semantics,2,args)
+                m = self.tournament_desired(desired_semantics,2,args)
                 args.append(m)
             return args
         ''''''

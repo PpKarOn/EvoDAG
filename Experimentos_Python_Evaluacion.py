@@ -13,15 +13,15 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-res = ['TF','TDO','TDOF']
-folderRes = ['../res/TF/','../res/TDO/','../res/TDOF/']
+res = ['NTDOF','TDOF']
+folderRes = ['../res/NTDOF/','../res/TDOF/']
 folderData = '../data/'
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
-#datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
-datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
+#datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-#os.chdir('/shared/cnsanchez/EvoDAG')
-os.chdir('/home/up/Documents/DOCTORADO/CODIGO/EvoDAG')
+os.chdir('/shared/cnsanchez/EvoDAG')
+#os.chdir('/home/up/Documents/DOCTORADO/CODIGO/EvoDAG')
 
 ####### BER Table ###########################################
 strv = 'Data set '

@@ -11,17 +11,17 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-folderParams = '../res/dataset/evodag-0.10.2/'
-folderRes = '../res/res/TDOF/'
+folderParams = '../res/res/TDOF/'
+folderRes = '../res/res/NTDOF/'
 folderData = '../data/'
-ncores = 2
+ncores = 32
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
-#datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
-datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
+#datasets_size = [1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-#os.chdir('/shared/cnsanchez/EvoDAG')
+os.chdir('/shared/cnsanchez/EvoDAG')
 #os.chdir('/home/up/Documents/DOCTORADO/CODIGO/EvoDAG')
-os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
+#os.chdir('/home/claudia/Documentos/DOCTORADO/CODIGO/EvoDAG')
 
 columns=['dataset','error','fitness','size']
 index=numpy.arange(len(datasets))
