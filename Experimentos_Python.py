@@ -12,7 +12,7 @@ def BER(y, yh):
     return (b / float(u.shape[0])) * 100.
 
 folderParams = '../res/res/TDOF/'
-folderRes = '../res/res/TO+/'
+folderRes = '../res/res/TF+/'
 folderData = '../data/'
 ncores = 32
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
