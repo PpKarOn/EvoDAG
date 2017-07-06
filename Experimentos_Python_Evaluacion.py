@@ -13,8 +13,8 @@ def BER(y, yh):
         b += (~(y[m] == yh[m])).sum() / float(m.sum())
     return (b / float(u.shape[0])) * 100.
 
-res = ['NTDOF','TDOF']
-folderRes = ['../res/NTDOF/','../res/TDOF/']
+res = ['TF','TO+','TD+']
+folderRes = ['../res/res/TF/','../res/res/TO+/','../res/res/TD+/']
 folderData = '../data/'
 datasets = ['thyroid','banana','titanic','diabetis','breast-cancer','flare-solar','heart','ringnorm','twonorm','german','waveform','splice','image']
 datasets_size = [100,100,100,100,100,100,100,100,100,100,100,20,20]
@@ -76,28 +76,25 @@ for i in range(len(datasets)):
 print(' ')
 
 ####### Size Table ###########################################
-strv = 'Data set '
-for i in range(len(res)):
-    strv += ' & '+res[i]
-print('\hline')
-print(strv + '\\\\')
-print('\hline')
-
-for i in range(len(datasets)):
-    archivo = datasets[i]
-    
-    strv = archivo
-    for k in range(len(res)):
-        value = []
-        for j in range(1,datasets_size[i]+1):
-            fileModel = folderRes[k]+archivo+'_test_data_'+str(j)+'.model'
-            with gzip.open(fileModel, 'r') as fpt:
-                m = pickle.load(fpt)
-                value.append( m.size )
-                #print("Height: %s" % m.height)
-                #print("Size: %s" % m.size)
-                #print("Fitness vs: %s" % m.fitness_vs)
-        v = numpy.median( numpy.array(value) )
-        strv += '& '+str( round(v,4))
-    print(strv + '\\\\ \\hline')
-
+# strv = 'Data set '
+# for i in range(len(res)):
+#     strv += ' & '+res[i]
+# print('\hline')
+# print(strv + '\\\\')
+# print('\hline')
+# for i in range(len(datasets)):
+#     archivo = datasets[i]
+#     strv = archivo
+#     for k in range(len(res)):
+#         value = []
+#         for j in range(1,datasets_size[i]+1):
+#             fileModel = folderRes[k]+archivo+'_test_data_'+str(j)+'.model'
+#             with gzip.open(fileModel, 'r') as fpt:
+#                 m = pickle.load(fpt)
+#                 value.append( m.size )
+#                 #print("Height: %s" % m.height)
+#                 #print("Size: %s" % m.size)
+#                 #print("Fitness vs: %s" % m.fitness_vs)
+#         v = numpy.median( numpy.array(value) )
+#         strv += '& '+str( round(v,4))
+#     print(strv + '\\\\ \\hline')
