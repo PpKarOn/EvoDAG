@@ -329,6 +329,21 @@ class EvoDAG(object):
             return None
         return res
 
+    def get_sample_population(self,size):
+        if size >= self.population.popsize or size == 0:
+            size = self.population.popsize
+        if size==0:
+            size = 1
+        res = []
+        done = {}
+        for _ in range(size): 
+            k = np.random.randint(self.population.popsize)
+            while k in done:
+                k = np.random.randint(self.population.popsize)
+            done[k] = 1
+            res.append(k)
+        return res,size
+
     @staticmethod
     def calculate_desired(func,y,hy):
         if isinstance(y,list):
@@ -364,14 +379,6 @@ class EvoDAG(object):
             dif = sum(SparseArray.fabs(SparseArray.sub(semantics1,semantics2)).data) 
         return dif
     '''
-    '''
-    @staticmethod
-    def calculate_orthogonality(vectors,vector):
-        o = 0
-        for v in vectors:
-            o+= abs(SparseArray.dot(v,vector))
-        return o
-    '''
     def cosine_similarity(semantics1,semantics2):
         sim = 0
         if isinstance(semantics1,list):
@@ -393,21 +400,6 @@ class EvoDAG(object):
             else:
                 sim = prod/(n1*n2)
         return sim
-
-    def get_sample_population(self,size):
-        if size >= self.population.popsize or size == 0:
-            size = self.population.popsize
-        if size==0:
-            size = 1
-        res = []
-        done = {}
-        for _ in range(size): 
-            k = np.random.randint(self.population.popsize)
-            while k in done:
-                k = np.random.randint(self.population.popsize)
-            done[k] = 1
-            res.append(k)
-        return res,size
     '''
     def tournament_desired(self,desired_unique,size,args):
         sample,size = self.get_sample_population(size)
@@ -458,6 +450,14 @@ class EvoDAG(object):
 
         return arg
 
+    ''''''
+    @staticmethod
+    def calculate_orthogonality(vectors,vector):
+        o = 0
+        for v in vectors:
+            o+= abs(SparseArray.dot(v,vector))
+        return o
+    ''''''
     def tournament_orthogonality(self,size,args):
         sample,size = self.get_sample_population(size)
         vectors = []
@@ -474,9 +474,10 @@ class EvoDAG(object):
             if isinstance( self.population.hist[self.population.population[k].position].hy,list ):
                 vector = self.population.hist[self.population.population[k].position].hy[0]
             Dif[i,0] = k
-            Dif[i,1] = 0
-            for j in range(len(vectors)):
-                Dif[i,1] += EvoDAG.cosine_similarity(vectors[j],vector)
+            Dif[i,1] = EvoDAG.calculate_orthogonality(vectors,vector)
+            #Dif[i,1] = 0
+            #for j in range(len(vectors)):
+            #    Dif[i,1] += EvoDAG.cosine_similarity(vectors[j],vector)
         arguments = Dif[ np.argsort(Dif[:,1]),0]
         for arg in arguments:
             if arg not in args:
